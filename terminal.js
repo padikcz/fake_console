@@ -340,10 +340,15 @@ Nikdy nevěř konzoli, která se tváří moc opravdově.`
     body.scrollTop = body.scrollHeight;
   }
 
-  function updatePrompt(){
-    promptEl.textContent = "host@padikcom:~#";
+ function updatePrompt(){
+  let path = displayPath(currentPath);
+
+  if(path.startsWith("/data")){
+    path = "~" + path;
   }
 
+  promptEl.textContent = "host@padikcom:" + path + "#";
+}
   function normalizePath(path){
     const parts = [];
 
