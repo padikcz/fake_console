@@ -93,50 +93,24 @@
   }
 
   async function loadFileSystem() {
-  const fileSystemUrl =
-    baseUrl +
-    "filesystem/default.json?v=" +
-    encodeURIComponent(cacheVersion);
-
-  console.log(
-    "Padik terminal: načítám filesystem z:",
-    fileSystemUrl
-  );
-
-  let response;
-
-  try {
-    response = await fetch(fileSystemUrl, {
-      method: "GET",
-      mode: "cors",
-      cache: "no-store",
-      credentials: "omit"
-    });
-  } catch (error) {
-    throw new Error(
-      "Nepodařilo se připojit k filesystem/default.json. " +
-      "Kontrolovaná adresa: " +
-      fileSystemUrl
+    const response = await fetch(
+      baseUrl +
+      "filesystem/default.json?v=" +
+      encodeURIComponent(cacheVersion),
+      {
+        cache: "no-store"
+      }
     );
-  }
 
-  if (!response.ok) {
-    throw new Error(
-      "filesystem/default.json vrátil HTTP " +
-      response.status +
-      ". Kontrolovaná adresa: " +
-      fileSystemUrl
-    );
-  }
+    if (!response.ok) {
+      throw new Error(
+        "Nelze načíst filesystem/default.json: HTTP " +
+        response.status
+      );
+    }
 
-  try {
     return await response.json();
-  } catch (error) {
-    throw new Error(
-      "filesystem/default.json není platný JSON."
-    );
   }
-}
 
   async function loadCommands() {
     for (const file of commandFiles) {
