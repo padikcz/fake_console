@@ -1,0 +1,37 @@
+{
+  "/home/padik": {
+    "type": "dir",
+    "children": {
+      "readme.txt": {
+        "type": "file",
+        "content": "I mustn't forget to turn off remote console access."
+      },
+      "data": {
+        "type": "dir",
+        "children": {
+          "web": {
+            "type": "dir",
+            "children": {}
+          },
+          "logs": {
+            "type": "dir",
+            "children": {
+              "access.log": {
+                "type": "file",
+                "content": "127.0.0.1 - GET / HTTP/2 200\n127.0.0.1 - GET /console HTTP/2 200"
+              },
+              "error.log": {
+                "type": "file",
+                "content": "[notice] remote console enabled\n[warning] unauthenticated terminal session detected"
+              },
+              "auth.log": {
+                "type": "file",
+                "content": "sshd: Accepted connection\nsystemd-logind: New session opened"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

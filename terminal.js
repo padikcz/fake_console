@@ -21,6 +21,15 @@
 
   const baseUrl = new URL("./", currentScript.src).href;
 
+  /*
+   * Stejná verze se přidá také k souborům ve složce commands.
+   * Když je terminal.js načten jako terminal.js?v=123,
+   * příkazy se načtou například jako commands/cd.js?v=123.
+   */
+  const cacheVersion =
+    new URL(currentScript.src).searchParams.get("v") ||
+    Date.now().toString();
+
   const terminalUser =
     terminal.getAttribute("user") ||
     terminal.dataset.user ||
@@ -37,7 +46,7 @@
       terminal.dataset.notcommand ||
       ""
     )
-      .split(/[\\s,;]+/)
+      .split(/[\s,;]+/)
       .map(command => command.trim().toLowerCase())
       .filter(Boolean)
   );
@@ -83,9 +92,61 @@
     });
   }
 
+  async function loadFileSystem() {
+  const fileSystemUrl =
+    baseUrl +
+    "filesystem/default.json?v=" +
+    encodeURIComponent(cacheVersion);
+
+  console.log(
+    "Padik terminal: načítám filesystem z:",
+    fileSystemUrl
+  );
+
+  let response;
+
+  try {
+    response = await fetch(fileSystemUrl, {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      credentials: "omit"
+    });
+  } catch (error) {
+    throw new Error(
+      "Nepodařilo se připojit k filesystem/default.json. " +
+      "Kontrolovaná adresa: " +
+      fileSystemUrl
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      "filesystem/default.json vrátil HTTP " +
+      response.status +
+      ". Kontrolovaná adresa: " +
+      fileSystemUrl
+    );
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new Error(
+      "filesystem/default.json není platný JSON."
+    );
+  }
+}
+
   async function loadCommands() {
     for (const file of commandFiles) {
-      await loadScript(baseUrl + "commands/" + file);
+      await loadScript(
+        baseUrl +
+        "commands/" +
+        file +
+        "?v=" +
+        encodeURIComponent(cacheVersion)
+      );
     }
   }
 
@@ -220,85 +281,7 @@
   let historyIndex = -1;
   let redirectInProgress = false;
 
-  const fs = {
-    "/home/padik": {
-      type: "dir",
-      children: {
-        "readme.txt": {
-          type: "file",
-          content:
-`Ahoj, já jsem Padik a ty jsi v mé konzoli.
-Jak ses sem dostal?
-
-Hlavně nemaž soubor:
-/data/web/index.html`
-        },
-
-        "data": {
-          type: "dir",
-          children: {
-            "web": {
-              type: "dir",
-              children: {
-                "index.html": {
-                  type: "file",
-                  tooLarge: true,
-                  content: "<!DOCTYPE html><html><body>Padik.eu</body></html>"
-                },
-                "style.css": {
-                  type: "file",
-                  content: "body { background:#050816; color:#fff; }"
-                },
-                "config.php": {
-                  type: "file",
-                  content: "<?php // fake configuration ?>"
-                }
-              }
-            },
-
-            "logs": {
-              type: "dir",
-              children: {
-                "access.log": {
-                  type: "file",
-                  content:
-`192.168.50.177 - GET / HTTP/2 200
-192.168.50.174 - GET /wp-admin HTTP/2 302
-127.0.0.1 - GET /server-status HTTP/1.1 200`
-                },
-                "error.log": {
-                  type: "file",
-                  content:
-`[warning] suspicious terminal access detected
-[notice] nginx reload complete`
-                },
-                "auth.log": {
-                  type: "file",
-                  content:
-`sshd: Accepted password for ${terminalUser}
-systemd-logind: New session opened`
-                }
-              }
-            },
-
-            "backup": {
-              type: "dir",
-              children: {
-                "old-readme.txt": {
-                  type: "file",
-                  content: "Starý README soubor."
-                },
-                "secret-note.txt": {
-                  type: "file",
-                  content: "Nikdy nevěř konzoli, která se tváří moc opravdově."
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  };
+  let fs = null;
 
   function addLine(html = "", className = "line") {
     const line = document.createElement("div");
@@ -570,7 +553,12 @@ systemd-logind: New session opened`
     if (!redirectInProgress) input.focus();
   });
 
-  loadCommands()
+  loadFileSystem()
+    .then(fileSystemData => {
+      fs = fileSystemData;
+
+      return loadCommands();
+    })
     .then(() => {
       updatePrompt();
       startupSimulation();
@@ -578,7 +566,7 @@ systemd-logind: New session opened`
     })
     .catch(error => {
       addLine(
-        '<span class="error">Nelze načíst příkazy:</span> ' +
+        '<span class="error">Nelze načíst konzoli:</span> ' +
         escapeHtml(error.message)
       );
       console.error(error);

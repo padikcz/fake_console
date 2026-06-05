@@ -1,51 +1,39 @@
 # Fake Console
 
-Nahraj celou strukturu do GitHub repozitáře:
+Struktura:
 
+```text
 fake_console/
 ├── terminal.js
+├── filesystem/
+│   └── default.json
 └── commands/
     ├── help.js
-    ├── clear.js
-    ├── pwd.js
-    ├── ls.js
-    ├── cd.js
-    ├── cat.js
-    ├── touch.js
-    ├── mkdir.js
-    ├── rm.js
-    ├── echo.js
-    ├── date.js
-    ├── whoami.js
-    ├── curl.js
-    ├── dig.js
-    └── systemctl.js
+    └── ...
+```
+
+`terminal.js` načítá falešný souborový systém z:
+
+```text
+filesystem/default.json
+```
 
 Použití:
 
+```html
 <div
   id="console"
   user="host"
   server="padikcom"
 ></div>
 
-<script src="https://cdn.jsdelivr.net/gh/padikcz/fake_console@main/terminal.js"></script>
+<script>
+  const script = document.createElement("script");
 
+  script.src =
+    "https://cdn.jsdelivr.net/gh/padikcz/fake_console@main/terminal.js?v=" +
+    Date.now();
 
-Zakázání jednoho příkazu:
-
-<div
-  id="console"
-  user="test"
-  server="cd"
-  notcommand="cd"
-></div>
-
-Zakázání více příkazů:
-
-<div
-  id="console"
-  notcommand="cd, rm, mkdir"
-></div>
-
-Lze použít čárky, mezery nebo středníky.
+  document.body.appendChild(script);
+</script>
+```
