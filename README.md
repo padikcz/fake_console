@@ -30,3 +30,22 @@ Použití:
 ></div>
 
 <script src="https://cdn.jsdelivr.net/gh/padikcz/fake_console@main/terminal.js"></script>
+
+
+Zakázání jednoho příkazu:
+
+<div
+  id="console"
+  user="test"
+  server="cd"
+  notcommand="cd"
+></div>
+
+Zakázání více příkazů:
+
+<div
+  id="console"
+  notcommand="cd, rm, mkdir"
+></div>
+
+Lze použít čárky, mezery nebo středníky.

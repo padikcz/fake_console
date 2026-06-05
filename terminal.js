@@ -31,6 +31,17 @@
     terminal.dataset.server ||
     "padikcom";
 
+  const disabledCommands = new Set(
+    String(
+      terminal.getAttribute("notcommand") ||
+      terminal.dataset.notcommand ||
+      ""
+    )
+      .split(/[\\s,;]+/)
+      .map(command => command.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
   const commandFiles = [
     "help.js",
     "clear.js",
@@ -47,7 +58,10 @@
     "curl.js",
     "dig.js",
     "systemctl.js"
-  ];
+  ].filter(file => {
+    const commandName = file.replace(/\.js$/i, "").toLowerCase();
+    return !disabledCommands.has(commandName);
+  });
 
   window.PadikTerminalCommands = window.PadikTerminalCommands || {};
 
@@ -455,6 +469,11 @@ systemd-logind: New session opened`
       .toLowerCase();
 
     if (!name) return;
+
+    if (disabledCommands.has(name)) {
+      addLine(escapeHtml(name) + ": command not found", "line error");
+      return;
+    }
 
     const handler = window.PadikTerminalCommands[name];
 
